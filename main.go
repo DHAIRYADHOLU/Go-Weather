@@ -2,33 +2,57 @@ package main
 
 import (
 	"encoding/json"
-	"log"
+	"fmt"
+	"io/ioutil"
 	"net/http"
-
-	"github.com/DHAIRYADHOLU/Go-Weather/weather"
-	"github.com/gorilla/mux"
+	"os"
 )
 
-// APIKey should be set as an environment variable or passed in securely
-const APIKey = "your_openweathermap_api_key"
-
-func main() {
-	router := mux.NewRouter()
-	router.HandleFunc("/weather", GetWeather).Methods("GET")
-
-	log.Println("Server listening on port 8080...")
-	log.Fatal(http.ListenAndServe(":8080", router))
+// WeatherData struct to represent the JSON response from OpenWeatherMap API
+type WeatherData struct {
+	Main struct {
+		Temp float64 `json:"temp"`
+	} `json:"main"`
+	Weather []struct {
+		Main        string `json:"main"`
+		Description string `json:"description"`
+	} `json:"weather"`
 }
 
-// GetWeather is the handler function for the /weather endpoint
-func GetWeather(w http.ResponseWriter, r *http.Request) {
-	weatherData, err := weather.GetWeatherData(APIKey)
+func main() {
+	printWeatherData(getWeatherData())
+}
+
+func getWeatherData() *WeatherData {
+	url := "https://api.openweathermap.org/data/2.5/weather?q=Toronto&appid=923a2dc915afc4f2bfcc07956e3fef0b"
+	res, err := http.Get(url)
 	if err != nil {
-		http.Error(w, "Failed to fetch weather data", http.StatusInternalServerError)
-		return
+		fmt.Println("Failed to fetch weather data:", err)
+		os.Exit(1)
+	}
+	defer res.Body.Close()
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		fmt.Println("Error reading response body:", err)
+		os.Exit(1)
 	}
 
-	// Convert the weather data to JSON and send it as the response
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(weatherData)
+	// Parse the JSON response into WeatherData struct
+	var weatherData WeatherData
+	err = json.Unmarshal(body, &weatherData)
+	if err != nil {
+		fmt.Println("Error parsing JSON:", err)
+		os.Exit(1)
+	}
+
+	return &weatherData
+}
+
+func printWeatherData(data *WeatherData) {
+	main := data.Weather[0].Main
+	description := data.Weather[0].Description
+	temperature := data.Main.Temp
+
+	fmt.Printf("Main: %s\nDescription: %s\nTemperature: %.2f°C\n", main, description, temperature)
 }
