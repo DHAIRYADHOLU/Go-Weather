@@ -21,13 +21,52 @@ func TestGetWeatherData(t *testing.T) {
 	// Override the OpenWeatherMapURL with the fake server's URL
 	OpenWeatherMapURL = server.URL
 
+	// Call the function with the fake server's URL
+	weatherData := getWeatherData()
+
+	// Check against the expected values
+	expectedTemp := 20.5
+	if weatherData.Main.Temp != expectedTemp {
+		t.Errorf("Expected temperature: %f, but got: %f", expectedTemp, weatherData.Main.Temp)
+	}
+
+	expectedMain := "Clear"
+	if weatherData.Weather[0].Main != expectedMain {
+		t.Errorf("Expected main weather: %s, but got: %s", expectedMain, weatherData.Weather[0].Main)
+	}
+
+	expectedDescription := "Clear sky"
+	if weatherData.Weather[0].Description != expectedDescription {
+		t.Errorf("Expected weather description: %s, but got: %s", expectedDescription, weatherData.Weather[0].Description)
+	}
+}
+
+func TestPrintWeatherData(t *testing.T) {
+	// Create a WeatherData struct with sample data
+	weatherData := &WeatherData{
+		Main: struct {
+			Temp float64 `json:"temp"`
+		}{
+			Temp: 25.0,
+		},
+		Weather: []struct {
+			Main        string `json:"main"`
+			Description string `json:"description"`
+		}{
+			{
+				Main:        "Cloudy",
+				Description: "Partly cloudy",
+			},
+		},
+	}
+
 	// Capture the printed output
 	output := captureOutput(func() {
-		printWeatherData(getWeatherData())
+		printWeatherData(weatherData)
 	})
 
 	// Check against the expected output
-	expectedOutput := "Main: Clear\nDescription: Clear sky\nTemperature: 20.50°C\n"
+	expectedOutput := "Main: Cloudy\nDescription: Partly cloudy\nTemperature: 25.00°C\n"
 	if output != expectedOutput {
 		t.Errorf("Expected output: %s, but got: %s", expectedOutput, output)
 	}

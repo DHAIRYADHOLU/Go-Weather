@@ -19,13 +19,15 @@ type WeatherData struct {
 	} `json:"weather"`
 }
 
+// OpenWeatherMapURL is the URL of the OpenWeatherMap API
+var OpenWeatherMapURL = "https://api.openweathermap.org/data/2.5/weather?q=Toronto&appid=923a2dc915afc4f2bfcc07956e3fef0b"
+
 func main() {
 	printWeatherData(getWeatherData())
 }
 
 func getWeatherData() *WeatherData {
-	url := "https://api.openweathermap.org/data/2.5/weather?q=Toronto&appid=923a2dc915afc4f2bfcc07956e3fef0b"
-	res, err := http.Get(url)
+	res, err := http.Get(OpenWeatherMapURL)
 	if err != nil {
 		fmt.Println("Failed to fetch weather data:", err)
 		os.Exit(1)
